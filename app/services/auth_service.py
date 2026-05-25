@@ -30,38 +30,51 @@ def decode_token(token: str):
         return None
 
 # ── Fondateur par défaut ──
+from datetime import datetime, date  # ← ajouter date
+
 def creer_fondateur_defaut(db: Session):
     existe = db.query(Membre).filter(Membre.telephone == "690000000").first()
+    
     if not existe:
         fondateur = Membre(
-            nom="Admin", prenom="Tontine",
+            nom="Admin",
+            prenom="Tontine",
             telephone="690000000",
             password=hash_password("admin1234"),
             est_fondateur=True,
             statut=StatutMembre.ACTIF,
         )
         db.add(fondateur)
-        db.flush()  # ← pour avoir fondateur.id
-        
-        # Créer la tontine par défaut
+        db.flush()
+
         from app.models.tontine import Tontine
         tontine = Tontine(
             id=str(uuid.uuid4()),
             nom="Tontine Principale",
             fondateur_id=fondateur.id,
+            date_debut=date.today(),       
+            jour_semaine="LUNDI",           
+            heure_debut="08:00",
+            heure_fin="18:00",
         )
         db.add(tontine)
         db.commit()
-        print("✅ Fondateur et tontine créés")
+        print("✅ Fondateur et tontine créés : 690000000 / admin1234")
+
     else:
-        # Créer la tontine si elle n'existe pas encore
         from app.models.tontine import Tontine
-        tontine = db.query(Tontine).filter(Tontine.fondateur_id == existe.id).first()
+        tontine = db.query(Tontine).filter(
+            Tontine.fondateur_id == existe.id
+        ).first()
         if not tontine:
             tontine = Tontine(
                 id=str(uuid.uuid4()),
                 nom="Tontine Principale",
                 fondateur_id=existe.id,
+                date_debut=date.today(),    
+                jour_semaine="LUNDI",
+                heure_debut="08:00",
+                heure_fin="18:00",
             )
             db.add(tontine)
             db.commit()

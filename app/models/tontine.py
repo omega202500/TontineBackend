@@ -15,7 +15,7 @@ class Tontine(Base):
     jour_semaine    = Column(String(20), nullable=True)
     heure_debut     = Column(String(5), nullable=False, default='08:00')
     heure_fin       = Column(String(5), nullable=False, default='18:00')
-    date_debut      = Column(String(10), nullable=False)
+    date_debut      = Column(String(10), nullable=True)  # Format 'YYYY-MM-DD'
     reglement       = Column(Text, nullable=True)
     statut          = Column(SAEnum(StatutTontine), default=StatutTontine.ACTIVE)
     fondateur_id    = Column(String(36), ForeignKey('membres.id'), nullable=False)

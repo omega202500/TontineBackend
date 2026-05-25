@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy.orm import Session
 import bcrypt
 from jose import jwt, JWTError

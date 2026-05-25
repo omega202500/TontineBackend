@@ -32,16 +32,38 @@ def creer_fondateur_defaut(db: Session):
     existe = db.query(Membre).filter(Membre.telephone == "690000000").first()
     if not existe:
         fondateur = Membre(
-            nom="Admin",
-            prenom="Tontine",
+            nom="Admin", prenom="Tontine",
             telephone="690000000",
             password=hash_password("admin1234"),
             est_fondateur=True,
             statut=StatutMembre.ACTIF,
         )
         db.add(fondateur)
+        db.flush()  # ← pour avoir fondateur.id
+        
+        # Créer la tontine par défaut
+        from app.models.tontine import Tontine
+        tontine = Tontine(
+            id=str(uuid.uuid4()),
+            nom="Tontine Principale",
+            fondateur_id=fondateur.id,
+        )
+        db.add(tontine)
         db.commit()
-        print("✅ Fondateur par défaut créé : 690000000 / admin1234")
+        print("✅ Fondateur et tontine créés")
+    else:
+        # Créer la tontine si elle n'existe pas encore
+        from app.models.tontine import Tontine
+        tontine = db.query(Tontine).filter(Tontine.fondateur_id == existe.id).first()
+        if not tontine:
+            tontine = Tontine(
+                id=str(uuid.uuid4()),
+                nom="Tontine Principale",
+                fondateur_id=existe.id,
+            )
+            db.add(tontine)
+            db.commit()
+            print("✅ Tontine par défaut créée")
 
 # ── Soumettre demande visiteur (avec password hashé dès le départ) ──
 def soumettre_demande(db: Session, data: dict):

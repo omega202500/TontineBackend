@@ -2,8 +2,11 @@ import requests
 import uuid
 from app.config import settings
 
-BASE_URL = settings.PAWAPAY_BASE_URL  # https://api.sandbox.pawapay.io/v2
-
+if settings.PAWAPAY_MODE == "production":
+    BASE_URL = settings.PAWAPAY_API_PRODUCTION_URL
+else:
+    BASE_URL = settings.PAWAPAY_API_SANDBOX_URL
+    
 def _headers() -> dict:
     return {
         "Authorization": f"Bearer {settings.PAWAPAY_API_KEY}",

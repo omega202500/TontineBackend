@@ -1,3 +1,4 @@
+from click import UUID
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Enum as SAEnum
 from sqlalchemy.types import Numeric
 from app.database import Base
@@ -8,10 +9,10 @@ import uuid
 class Paiement(Base):
     __tablename__ = "paiements"
 
-    id                    = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    membre_id             = Column(String(36), ForeignKey("membres.id"), nullable=False)
-    seance_id             = Column(String(36), ForeignKey("seances.id"), nullable=False)
-    lot_id                = Column(String(36), ForeignKey("lots.id"), nullable=False)
+    id                    = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    membre_id             = Column(UUID(as_uuid=True), ForeignKey("membres.id"), nullable=False)
+    seance_id             = Column(UUID(as_uuid=True), ForeignKey("seances.id"), nullable=False)
+    lot_id                = Column(UUID(as_uuid=True), ForeignKey("lots.id"), nullable=False)
     montant_lot           = Column(Numeric(10, 2), nullable=False)
     montant_sention       = Column(Numeric(10, 2), default=0)
     montant_total         = Column(Numeric(10, 2), nullable=False)

@@ -64,7 +64,6 @@ def _to_response(m):
         prenom=m.prenom,
         age=m.age,
         telephone=m.telephone,
-        role=m.role,
         est_fondateur=m.est_fondateur,
         statut=m.statut,
     )

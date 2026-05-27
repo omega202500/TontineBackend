@@ -5,7 +5,7 @@ from typing import Optional
 ENV_FILE = Path(__file__).parent.parent / ".env"
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql://postgres.ehurmyiltyvaewowcrwl:Joelomega@237@aws-0-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require"
+    DATABASE_URL: str = "postgresql://postgres.ehurmyiltyvaewowcrwl:Joelomega%40237@aws-0-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require"
     SECRET_KEY: str = "tontine_secret_key_2025"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440

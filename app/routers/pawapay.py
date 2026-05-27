@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from app.services.pawapay_service import lancer_paiement
+from app.services.pawapay_service import initier_depot
 
 router = APIRouter(prefix="/pawapay", tags=["PawaPay"])
 
@@ -8,10 +8,10 @@ class PaiementRequest(BaseModel):
     numero: str
     montant: float
 
-@router.post("/payer")
-def payer(data: PaiementRequest):
+@router.post("/initier_depot")
+def initier_depot_endpoint(data: PaiementRequest):
 
-    result = lancer_paiement(
+    result = initier_depot(
         data.numero,
         data.montant
     )

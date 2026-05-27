@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from app.models.membre import Membre, StatutMembre
 from app.config import settings
 
+
+
 # ── Hash mot de passe ──
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -15,10 +17,18 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode('utf-8'), hashed.encode('utf-8'))
 
 # ── Token JWT ──
-def create_token(membre_id: str) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+def create_token(membre_id):
+    expire = datetime.utcnow() + timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+    payload = {
+        "sub": str(membre_id),  # IMPORTANT
+        "exp": expire
+    }
+
     return jwt.encode(
-        {"sub": membre_id, "exp": expire},
+        payload,
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM
     )

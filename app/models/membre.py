@@ -2,6 +2,7 @@ from click import UUID
 from sqlalchemy import Column, String, Boolean, DateTime, Integer, Enum as SAEnum
 from app.database import Base
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import UUID
 import uuid
 import enum
 
@@ -15,7 +16,7 @@ class StatutMembre(str, enum.Enum):
 class Membre(Base):
     __tablename__ = "membres"
 
-    id            = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(as_uuid=True),primary_key=True, default=uuid.uuid4)
     nom           = Column(String(100), nullable=False)
     prenom        = Column(String(100), nullable=False)
     age           = Column(Integer, nullable=True)

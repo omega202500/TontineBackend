@@ -57,13 +57,17 @@ def notifier_fondateurs(db: Session, titre: str, message: str, type_notif: TypeN
         )
         db.add(notif)
     db.commit()
-
-def _to_response(m: Membre) -> MembreResponse:
+def _to_response(m):
     return MembreResponse(
-        id=m.id, nom=m.nom, prenom=m.prenom, age=m.age,
-        ville=m.ville, telephone=m.telephone,
-        numero_cni=m.numero_cni, photo_url=m.photo_url,
-        est_fondateur=m.est_fondateur, statut=m.statut,
+        id=str(m.id),
+        nom=m.nom,
+        prenom=m.prenom,
+        age=m.age,
+        telephone=m.telephone,
+        sexe=m.sexe,
+        role=m.role,
+        est_fondateur=m.est_fondateur,
+        statut=m.statut,
     )
 
 # ══ VISITEUR ══

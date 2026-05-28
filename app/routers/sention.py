@@ -20,7 +20,7 @@ class AideCreate(BaseModel):
     tontine_id: Optional[str] = None
 
 @router.get("/solde")
-def get_solde_sention(db: Session = Depends(get_db), membre=Depends(get_current_membre)):
+def get_solde_sention(db: Session = Depends(get_db), membre=Depends(get_current_user)):
     """Solde de la caisse sention = somme des sentions perçues."""
     paiements = db.query(Paiement).filter(Paiement.statut == "VALIDE").all()
     solde = sum(float(p.montant_sention) for p in paiements if p.montant_sention)
@@ -30,7 +30,7 @@ def get_solde_sention(db: Session = Depends(get_db), membre=Depends(get_current_
     return {"solde": max(0, solde - total_verse)}
 
 @router.get("/mes-aides")
-def mes_aides(db: Session = Depends(get_db), membre=Depends(get_current_membre)):
+def mes_aides(db: Session = Depends(get_db), membre=Depends(get_current_user)):
     aides = db.query(AideSention).filter(
         AideSention.membre_id == membre.id
     ).order_by(AideSention.created_at.desc()).all()
@@ -44,7 +44,7 @@ def mes_aides(db: Session = Depends(get_db), membre=Depends(get_current_membre))
     } for a in aides]
 
 @router.post("/demander-aide")
-def demander_aide(data: AideCreate, db: Session = Depends(get_db), membre=Depends(get_current_membre)):
+def demander_aide(data: AideCreate, db: Session = Depends(get_db), membre=Depends(get_current_user)):
     # Récupérer la première tontine disponible si pas précisée
     tontine_id = data.tontine_id
     if not tontine_id:

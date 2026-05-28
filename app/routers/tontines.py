@@ -70,7 +70,7 @@ def creer_tontine(
 @router.get("/", response_model=List[TontineResponse])
 def get_tontines(
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
     tontines = db.query(Tontine).filter(
         Tontine.statut != StatutTontine.CLOTUREE
@@ -98,7 +98,7 @@ def get_tontines(
 @router.get("/mes-tontines")
 def mes_tontines(
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
     # Récupérer les lots où le membre est adhérent
     adhesions = db.query(AdhesionLot).filter(
@@ -149,7 +149,7 @@ def mes_tontines(
 def get_tontine(
     tontine_id: str,
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
     t = db.query(Tontine).filter(Tontine.id == tontine_id).first()
     if not t:

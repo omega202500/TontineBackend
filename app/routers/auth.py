@@ -25,7 +25,7 @@ import uuid
 router = APIRouter(prefix="/auth", tags=["Authentification"])
 
 # ══ Helpers ══
-def get_current_membre(authorization: str = Header(...), db: Session = Depends(get_db)):
+def get_current_user(authorization: str = Header(...), db: Session = Depends(get_db)):
     if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Token manquant")
     token = authorization.split(" ")[1]
@@ -37,7 +37,7 @@ def get_current_membre(authorization: str = Header(...), db: Session = Depends(g
         raise HTTPException(status_code=401, detail="Membre introuvable")
     return membre
 
-def get_fondateur(membre: Membre = Depends(get_current_membre)):
+def get_fondateur(membre: Membre = Depends(get_current_user)):
     if not membre.est_fondateur:
         raise HTTPException(status_code=403, detail="Accès réservé au fondateur")
     return membre
@@ -102,7 +102,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     return AuthResponse(access_token=token, membre=_to_response(membre))
 
 @router.get("/me", response_model=MembreResponse)
-def get_me(membre: Membre = Depends(get_current_membre)):
+def get_me(membre: Membre = Depends(get_current_user)):
     return _to_response(membre)
 
 # ══ FONDATEUR ══

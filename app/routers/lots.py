@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from app.database import get_db
-from app.routers.auth import get_current_membre, get_fondateur
+from app.routers.auth import get_current_membre, get_current_user, get_fondateur
 from app.models.lot import Lot, AdhesionLot
 from app.models.enums import StatutLot
 from app.models.membre import Membre
@@ -64,8 +64,8 @@ def get_lots(
                 montant_cotisation=float(lot.montant_cotisation),
                 nb_max_membres=lot.nb_max_membres,
                 cycle_actuel=lot.cycle_actuel,
-                statut=str(lot.statut),
-                option_integration=str(lot.option_integration),
+                statut=lot.statut.value if hasattr(lot.statut, "value") else str(lot.statut),
+                option_integration=lot.option_integration.value if hasattr(lot.option_integration, "value") else str(lot.option_integration),
                 nb_membres=nb
             )
         )
@@ -128,7 +128,7 @@ def creer_lot(
 def adherer_lot(
     lot_id: str,
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
 
     lot = db.query(Lot).filter(Lot.id == lot_id).first()

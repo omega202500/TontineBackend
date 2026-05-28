@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.routers.auth import get_current_membre, get_current_user
+from app.routers.auth import get_current_user, get_fondateur
 from app.models.notification import Notification
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])

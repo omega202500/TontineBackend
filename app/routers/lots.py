@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from app.database import get_db
-from app.routers.auth import get_current_membre, get_current_user, get_fondateur
+from app.routers.auth import get_current_user, get_fondateur
 from app.models.lot import Lot, AdhesionLot
 from app.models.enums import StatutLot
 from app.models.membre import Membre
@@ -45,7 +45,7 @@ class LotResponse(BaseModel):
 @router.get("/", response_model=List[LotResponse])
 def get_lots(
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
     lots = db.query(Lot).filter(Lot.statut != StatutLot.CLOS).all()
 
@@ -243,7 +243,7 @@ def tirage_au_sort(
 def membres_lot(
     lot_id: str,
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
 
     adhesions = db.query(AdhesionLot).filter(

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 from app.database import get_db
-from app.routers.auth import get_current_membre, get_fondateur
+from app.routers.auth import get_current_user, get_fondateur
 from app.models.tontine import Tontine
 from app.models.lot import Lot, AdhesionLot
 from app.models.enums import StatutTontine

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from app.database import get_db
-from app.routers.auth import get_current_membre, get_fondateur, notifier_fondateurs
+from app.routers.auth import get_current_user, get_fondateur, notifier_fondateurs
 from app.services.pawapay_service import (
     initier_depot, verifier_statut_depot,
     initier_payout, get_config_active, valider_numero
@@ -64,12 +64,12 @@ class ReponsePret(BaseModel):
 # ════════════════════════════════════════════
 
 @router.get("/config")
-def get_config(membre=Depends(get_current_membre)):
+def get_config(membre=Depends(get_current_user)):
     """Retourne les opérateurs disponibles pour le Cameroun."""
     return get_config_active()
 
 @router.post("/valider-numero")
-def valider_tel(data: dict, membre=Depends(get_current_membre)):
+def valider_tel(data: dict, membre=Depends(get_current_user)):
     """Valide un numéro et détecte l'opérateur."""
     tel = data.get("telephone", "")
     return valider_numero(tel)
@@ -82,7 +82,7 @@ def valider_tel(data: dict, membre=Depends(get_current_membre)):
 def initier_paiement(
     data: InitierRequest,
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
     """
     Initie un dépôt PawaPay.
@@ -126,7 +126,7 @@ def initier_paiement(
 def verifier_statut(
     deposit_id: str,
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
     resultat = verifier_statut_depot(deposit_id)
     tx = _transactions.get(deposit_id, {})
@@ -233,7 +233,7 @@ def bouffement_payout(
 def retrait_epargne(
     data: DemandeRetrait,
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
     """Le membre retire son épargne vers son Mobile Money."""
     resultat = initier_payout(
@@ -254,7 +254,7 @@ def retrait_epargne(
 def demander_pret(
     data: DemandePret,
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
     """
     Un membre demande un prêt.
@@ -326,7 +326,7 @@ def demander_pret(
 def repondre_pret(
     data: ReponsePret,
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
     """
     Un épargnant accepte ou refuse de prêter son épargne.

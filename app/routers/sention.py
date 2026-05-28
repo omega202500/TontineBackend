@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 from app.database import get_db
-from app.routers.auth import get_current_membre, get_fondateur
+from app.routers.auth import get_current_user, get_fondateur
 from app.models.sention import AideSention
 from app.models.paiement import Paiement
 from app.models.enums import MotifAide, StatutAide, TypeNotif

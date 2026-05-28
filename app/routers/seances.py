@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 from app.database import get_db
-from app.routers.auth import get_current_membre, get_fondateur
+from app.routers.auth import get_current_membre, get_current_user, get_fondateur
 from app.models.seance import Seance
 from app.models.lot import Lot, AdhesionLot
 from app.models.enums import StatutSeance, TypeNotif
@@ -267,7 +267,7 @@ def cloturer_seance(
 def seances_par_lot(
     lot_id: str,
     db: Session = Depends(get_db),
-    membre=Depends(get_current_membre)
+    membre=Depends(get_current_user)
 ):
 
     seances = db.query(Seance).filter(

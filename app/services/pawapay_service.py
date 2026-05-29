@@ -6,14 +6,16 @@ if settings.PAWAPAY_MODE == "production":
     BASE_URL = settings.PAWAPAY_API_PRODUCTION_URL
 else:
     BASE_URL = settings.PAWAPAY_API_SANDBOX_URL
-    
+
+
 def _headers() -> dict:
     return {
         "Authorization": f"Bearer {settings.PAWAPAY_API_KEY}",
         "Content-Type": "application/json",
     }
 
-# ── Détection opérateur Cameroun ──
+
+# ── Détection opérateur Cameroun ─────────────────────────────────────────────
 def detecter_operateur(telephone: str) -> str:
     numero = telephone.replace("+237", "").replace(" ", "").lstrip("0")
     if not numero.startswith("237"):
@@ -30,102 +32,117 @@ def detecter_operateur(telephone: str) -> str:
         return "ORANGE_CMR"
     return "MTN_MOMO_CMR"
 
+
 def formater_numero(telephone: str) -> str:
     """Retourne le numéro au format MSISDN : 237XXXXXXXXX"""
-    n = telephone.replace("+237","").replace(" ","").lstrip("0")
+    n = telephone.replace("+237", "").replace(" ", "").lstrip("0")
     if not n.startswith("237"):
         n = "237" + n
     return n
 
-# ── Valider le numéro via PawaPay ──
+
+# ── Valider le numéro via PawaPay ─────────────────────────────────────────────
 def valider_numero(telephone: str) -> dict:
     numero = formater_numero(telephone)
     try:
         resp = requests.post(
             f"{BASE_URL}/predict-provider",
             json={"phoneNumber": numero},
-            headers=_headers(), timeout=10
+            headers=_headers(),
+            timeout=10,
         )
         if resp.status_code == 200:
             data = resp.json()
             return {
-                "valide": True,
-                "numero": data.get("phoneNumber", numero),
+                "valide":   True,
+                "numero":   data.get("phoneNumber", numero),
                 "provider": data.get("provider", detecter_operateur(telephone)),
-                "country": data.get("country", "CMR"),
+                "country":  data.get("country", "CMR"),
             }
-    except:
+    except Exception:
         pass
     # Fallback local
     return {
-        "valide": True,
-        "numero": formater_numero(telephone),
+        "valide":   True,
+        "numero":   formater_numero(telephone),
         "provider": detecter_operateur(telephone),
-        "country": "CMR",
+        "country":  "CMR",
     }
 
-# ── Récupérer la config active (opérateurs disponibles) ──
+
+# ── Récupérer la config active (opérateurs disponibles) ──────────────────────
 def get_config_active() -> dict:
     try:
         resp = requests.get(
-            f"{BASE_URL}/active-conf?country=CMR&operationType=DEPOSIT",
-            headers=_headers(), timeout=10
+            f"{BASE_URL}/active-conf",
+            headers=_headers(),
+            timeout=10,
         )
         if resp.status_code == 200:
             return resp.json()
-    except:
+    except Exception:
         pass
-    # Fallback : retourner les opérateurs connus Cameroun
+    # Fallback : opérateurs connus Cameroun
     return {
         "countries": [{
             "country": "CMR",
-            "prefix": "237",
+            "prefix":  "237",
             "providers": [
-                {"provider": "MTN_MOMO_CMR", "displayName": "MTN MoMo",
-                 "logo": "https://static-content.pawapay.io/company_logos/mtn.png"},
-                {"provider": "ORANGE_CMR", "displayName": "Orange Money",
-                 "logo": "https://static-content.pawapay.io/company_logos/orange.png"},
-            ]
+                {
+                    "provider":    "MTN_MOMO_CMR",
+                    "displayName": "MTN MoMo",
+                    "logo":        "https://static-content.pawapay.io/company_logos/mtn.png",
+                },
+                {
+                    "provider":    "ORANGE_CMR",
+                    "displayName": "Orange Money",
+                    "logo":        "https://static-content.pawapay.io/company_logos/orange.png",
+                },
+            ],
         }]
     }
 
-# ── Initier un dépôt (débit du membre) ──
-def initier_depot(telephone: str, montant: float,
-                  provider: str = None,
-                  type_transaction: str = "COTISATION") -> dict:
+
+# ── Initier un dépôt (débit du membre) ───────────────────────────────────────
+def initier_depot(
+    telephone: str,
+    montant: float,
+    provider: str = None,
+    type_transaction: str = "COTISATION",
+) -> dict:
     deposit_id = str(uuid.uuid4())
     info       = valider_numero(telephone)
     numero     = info["numero"]
     operateur  = provider or info["provider"]
 
+    # Payload minimal accepté par PawaPay API v2
     payload = {
-    "depositId":  deposit_id,
-    "amount":     str(int(montant)),
-    "currency":   "XAF",
-    "country":    "CMR",
-    "payer": {
-        "type": "MMO",
-        "accountDetails": {
-            "phoneNumber": numero,
-            "provider":    operateur,
-        }
-    },
-}
+        "depositId": deposit_id,
+        "amount":    str(int(montant)),
+        "currency":  "XAF",
+        "payer": {
+            "type": "MMO",
+            "accountDetails": {
+                "phoneNumber": numero,
+                "provider":    operateur,
+            },
+        },
+    }
 
-    # ── Log de diagnostic ──
-    print(f"[PAWAPAY] URL      : {BASE_URL}/deposits")
-    print(f"[PAWAPAY] Numero   : {numero}")
-    print(f"[PAWAPAY] Operateur: {operateur}")
-    print(f"[PAWAPAY] Montant  : {montant}")
-    print(f"[PAWAPAY] Token    : {settings.PAWAPAY_API_KEY[:30]}...")
+    print(f"[PAWAPAY] URL       : {BASE_URL}/deposits")
+    print(f"[PAWAPAY] Numero    : {numero}")
+    print(f"[PAWAPAY] Operateur : {operateur}")
+    print(f"[PAWAPAY] Montant   : {montant}")
+    print(f"[PAWAPAY] Token     : {settings.PAWAPAY_API_KEY[:30]}...")
 
     try:
         resp = requests.post(
             f"{BASE_URL}/deposits",
-            json=payload, headers=_headers(), timeout=30
+            json=payload,
+            headers=_headers(),
+            timeout=30,
         )
 
-        # ── Log réponse brute ──
         print(f"[PAWAPAY] Status HTTP : {resp.status_code}")
         print(f"[PAWAPAY] Réponse     : {resp.text}")
 
@@ -149,26 +166,40 @@ def initier_depot(telephone: str, montant: float,
                 "code":       raison.get("failureCode", "REJECTED"),
             }
         else:
-            return {"success": False, "message": f"Statut inattendu: {statut}", "data": data}
+            return {
+                "success": False,
+                "message": f"Statut inattendu: {statut}",
+                "data":    data,
+            }
 
     except requests.Timeout:
-        return {"success": False, "deposit_id": deposit_id,
-                "message": "Délai dépassé. Vérifiez le statut manuellement."}
+        return {
+            "success":    False,
+            "deposit_id": deposit_id,
+            "message":    "Délai dépassé. Vérifiez le statut manuellement.",
+        }
     except Exception as e:
         return {"success": False, "message": str(e)}
-# ── Vérifier statut dépôt ──
+
+
+# ── Vérifier statut dépôt ─────────────────────────────────────────────────────
 def verifier_statut_depot(deposit_id: str) -> dict:
     try:
         resp = requests.get(
             f"{BASE_URL}/deposits/{deposit_id}",
-            headers=_headers(), timeout=15
+            headers=_headers(),
+            timeout=15,
         )
         data = resp.json()
         if isinstance(data, list):
             data = data[0] if data else {}
         if not data:
-            return {"deposit_id": deposit_id, "statut": "NOT_FOUND",
-                    "completed": False, "failed": True}
+            return {
+                "deposit_id": deposit_id,
+                "statut":     "NOT_FOUND",
+                "completed":  False,
+                "failed":     True,
+            }
 
         statut = data.get("status", "UNKNOWN")
         return {
@@ -179,43 +210,61 @@ def verifier_statut_depot(deposit_id: str) -> dict:
             "processing": statut in ["ACCEPTED", "PROCESSING"],
             "data":       data,
         }
-    except Exception as e:
-        return {"deposit_id": deposit_id, "statut": "ERREUR",
-                "completed": False, "failed": False, "processing": True}
+    except Exception:
+        return {
+            "deposit_id": deposit_id,
+            "statut":     "ERREUR",
+            "completed":  False,
+            "failed":     False,
+            "processing": True,
+        }
 
-# ── Initier un payout (virement vers membre) ──
-def initier_payout(telephone: str, montant: float,
-                   provider: str = None,
-                   description: str = "Bouffement") -> dict:
+
+# ── Initier un payout (virement vers membre) ─────────────────────────────────
+def initier_payout(
+    telephone: str,
+    montant: float,
+    provider: str = None,
+    description: str = "Bouffement",
+) -> dict:
     payout_id = str(uuid.uuid4())
-    info = valider_numero(telephone)
-    numero = info["numero"]
+    info      = valider_numero(telephone)
+    numero    = info["numero"]
     operateur = provider or info["provider"]
 
+    # Payload minimal pour payout PawaPay API v2
     payload = {
-        "payoutId":   payout_id,
-        "amount":     str(int(montant)),
-        "currency":   "XAF",
-        "country":    "CMR",
+        "payoutId":      payout_id,
+        "amount":        str(int(montant)),
+        "currency":      "XAF",
         "correspondent": operateur,
         "recipient": {
             "type": "MMO",
             "accountDetails": {
                 "phoneNumber": numero,
                 "provider":    operateur,
-            }
+            },
         },
-        "statementDescription": description[:20],
-        "callbackUrl": settings.PAWAPAY_CALLBACK_URL,
     }
+
+    print(f"[PAWAPAY PAYOUT] Numero    : {numero}")
+    print(f"[PAWAPAY PAYOUT] Operateur : {operateur}")
+    print(f"[PAWAPAY PAYOUT] Montant   : {montant}")
 
     try:
         resp = requests.post(
             f"{BASE_URL}/payouts",
-            json=payload, headers=_headers(), timeout=30
+            json=payload,
+            headers=_headers(),
+            timeout=30,
         )
-        data = resp.json()
+
+        print(f"[PAWAPAY PAYOUT] Status HTTP : {resp.status_code}")
+        print(f"[PAWAPAY PAYOUT] Réponse     : {resp.text}")
+
+        data   = resp.json()
         statut = data.get("status", "")
+
         if statut == "ACCEPTED":
             return {
                 "success":   True,
@@ -223,10 +272,18 @@ def initier_payout(telephone: str, montant: float,
                 "statut":    "ACCEPTED",
                 "message":   f"{int(montant):,} FCFA envoyés vers {operateur} ({telephone})",
             }
+
         raison = data.get("failureReason", {})
         return {
             "success": False,
-            "message": raison.get("failureMessage", f"Erreur: {statut}"),
+            "message": raison.get("failureMessage", f"Erreur payout: {statut}"),
+        }
+
+    except requests.Timeout:
+        return {
+            "success":   False,
+            "payout_id": payout_id,
+            "message":   "Délai dépassé pour le payout.",
         }
     except Exception as e:
         return {"success": False, "message": str(e)}

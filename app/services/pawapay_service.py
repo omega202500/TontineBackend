@@ -99,20 +99,19 @@ def initier_depot(telephone: str, montant: float,
     operateur  = provider or info["provider"]
 
     payload = {
-        "depositId":  deposit_id,
-        "amount":     str(int(montant)),
-        "currency":   "XAF",
-        "country":    "CMR",
-        "payer": {
-            "type": "MMO",
-            "accountDetails": {
-                "phoneNumber": numero,
-                "provider":    operateur,
-            }
-        },
-        "statementDescription": f"Tontine-{type_transaction[:20]}",
-        "callbackUrl": settings.PAWAPAY_CALLBACK_URL,
-    }
+    "depositId":  deposit_id,
+    "amount":     str(int(montant)),
+    "currency":   "XAF",
+    "country":    "CMR",
+    "payer": {
+        "type": "MMO",
+        "accountDetails": {
+            "phoneNumber": numero,
+            "provider":    operateur,
+        }
+    },
+    "statementDescription": f"Tontine-{type_transaction[:20]}",
+}
 
     # ── Log de diagnostic ──
     print(f"[PAWAPAY] URL      : {BASE_URL}/deposits")

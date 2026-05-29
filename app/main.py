@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.database import Base, engine, SessionLocal
-from app.routers import auth, lots, seances, paiements, tontines, notifications, sention
+from app.routers import auth, epargne, lots, prets, seances, paiements, tontines, notifications, sention
 from app.services.auth_service import creer_fondateur_defaut
 from app.routers import pawapay
 
@@ -32,6 +32,8 @@ app.include_router(paiements.router)
 app.include_router(notifications.router)
 app.include_router(sention.router)
 app.include_router(pawapay.router)
+app.include_router(epargne.router)
+app.include_router(prets.router)
 
 @app.on_event("startup")
 def startup():

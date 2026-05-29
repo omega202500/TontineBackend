@@ -431,30 +431,52 @@ def _enregistrer_cotisation(db, tx: dict, deposit_id: str):
     db.commit()
 
 def _enregistrer_epargne(db, tx: dict, deposit_id: str):
-    """Enregistre un dépôt d'épargne confirmé."""
+    """
+    Enregistre un dépôt d'épargne confirmé par PawaPay.
+    Met à jour le solde dans la table epargnes.
+    """
+    # Éviter le double enregistrement
+    from app.models.paiement import Paiement
+    from app.models.enums import StatutPaiement
     deja = db.query(Paiement).filter(
         Paiement.reference_transaction == deposit_id
     ).first()
     if deja:
         return
-    # Trouver tontine_id
-    adhesion = db.query(AdhesionLot).filter(
-        AdhesionLot.membre_id == tx["membre_id"]
-    ).first()
-    tontine_id = None
-    if adhesion:
-        lot = db.query(Lot).filter(Lot.id == adhesion.lot_id).first()
-        if lot:
-            tontine_id = lot.tontine_id
-
-    # Notifier le fondateur
+ 
+    membre_id = tx["membre_id"]
+    montant   = float(tx["montant"])
+ 
+    # ── Mettre à jour (ou créer) le solde épargne ──────────────────────────
+    # Importez Epargne depuis là où vous l'avez défini :
+    from app.routers.epargne import Epargne   # ← adaptez le chemin si besoin
+    import uuid
+    from datetime import datetime
+ 
+    epargne = db.query(Epargne).filter(Epargne.membre_id == str(membre_id)).first()
+    if not epargne:
+        epargne = Epargne(
+            id=str(uuid.uuid4()),
+            membre_id=str(membre_id),
+            solde=0,
+        )
+        db.add(epargne)
+        db.flush()
+ 
+    epargne.solde      = float(epargne.solde) + montant
+    epargne.updated_at = datetime.utcnow()
+ 
+    # ── Notifier le fondateur ───────────────────────────────────────────────
+    from app.routers.auth import notifier_fondateurs
+    from app.models.enums import TypeNotif
     notifier_fondateurs(
         db,
         titre="💰 Nouveau dépôt d'épargne",
-        message=f"{_get_membre_nom(db, tx['membre_id'])} vient de déposer "
-                f"{int(tx['montant']):,} FCFA sur son épargne.",
+        message=f"{_get_membre_nom(db, membre_id)} vient de déposer "
+                f"{int(montant):,} FCFA sur son épargne.",
         type_notif=TypeNotif.PAIEMENT_CONFIRME,
     )
+ 
     db.commit()
 
 def _enregistrer_remboursement(db, tx: dict, deposit_id: str):

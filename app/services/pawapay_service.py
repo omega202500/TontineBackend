@@ -184,12 +184,13 @@ def initier_depot(
 
 # ── Vérifier statut dépôt ─────────────────────────────────────────────────────
 def verifier_statut_depot(deposit_id: str) -> dict:
-    print(f"[PAWAPAY STATUS] Réponse brute: {resp.text}")
+    
     try:
         resp = requests.get(
             f"{BASE_URL}/deposits/{deposit_id}",
             headers=_headers(),
             timeout=15,
+            
         )
         data = resp.json()
         if isinstance(data, list):

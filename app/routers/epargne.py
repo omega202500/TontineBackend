@@ -11,6 +11,7 @@ from typing import Optional
 from datetime import datetime
 import uuid
 
+from app.models.epargne import Epargne 
 from app.database import get_db
 from app.routers.auth import get_current_user
 from app.models.membre import Membre

@@ -29,6 +29,7 @@ from app.database import Base
 class Epargne(Base):
     """Table d'épargne : un enregistrement par membre."""
     __tablename__ = "epargnes"
+    __table_args__ = {'extend_existing': True}  
 
     id         = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     membre_id  = Column(String(36), ForeignKey("membres.id"), unique=True, nullable=False)

@@ -9,6 +9,8 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 import uuid
+from app.models.pret import Pret, StatutPret
+from app.models.enums import StatutPret
 
 from app.database import get_db
 from app.routers.auth import get_current_user, get_fondateur
@@ -25,32 +27,6 @@ from sqlalchemy import Column, String, Numeric, ForeignKey, DateTime, Enum as SA
 from app.database import Base
 import enum
 
-class StatutPret(str, enum.Enum):
-    EN_ATTENTE = "EN_ATTENTE"
-    APPROUVE   = "APPROUVE"
-    REFUSE     = "REFUSE"
-    EN_COURS   = "EN_COURS"
-    REMBOURSE  = "REMBOURSE"
-    DEFAUT     = "DEFAUT"
-
-class Pret(Base):
-    __tablename__ = "prets"
-
-    id                 = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    emprunteur_id      = Column(String(36), ForeignKey("membres.id"), nullable=False)
-    tontine_id         = Column(String(36), nullable=True)
-    montant            = Column(Numeric(12, 2), nullable=False)
-    montant_total_du   = Column(Numeric(12, 2), nullable=True)   # montant + intérêts
-    montant_rembourse  = Column(Numeric(12, 2), default=0)
-    date_echeance      = Column(String(20), nullable=False)
-    motif              = Column(String(500), nullable=True)
-    statut             = Column(SAEnum(StatutPret), default=StatutPret.EN_ATTENTE)
-    valide_par         = Column(String(36), nullable=True)
-    created_at         = Column(DateTime, default=datetime.utcnow)
-    updated_at         = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-
-# ── Schémas ───────────────────────────────────────────────────────────────────
 
 class PretCreate(BaseModel):
     montant:       float

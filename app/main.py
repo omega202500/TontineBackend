@@ -5,6 +5,7 @@ from app.database import Base, engine, SessionLocal
 from app.routers import auth, epargne, lots, prets, seances, paiements, tontines, notifications, sention
 from app.services.auth_service import creer_fondateur_defaut
 from app.routers import pawapay
+from app.models import epargne 
 
 # ── Import de tous les modèles pour que SQLAlchemy les connaisse ──
 from app.models import (

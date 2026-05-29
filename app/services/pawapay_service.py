@@ -94,13 +94,13 @@ def initier_depot(telephone: str, montant: float,
                   provider: str = None,
                   type_transaction: str = "COTISATION") -> dict:
     deposit_id = str(uuid.uuid4())
-    info = valider_numero(telephone)
-    numero = info["numero"]
-    operateur = provider or info["provider"]
+    info       = valider_numero(telephone)
+    numero     = info["numero"]
+    operateur  = provider or info["provider"]
 
     payload = {
         "depositId":  deposit_id,
-        "amount":     str(int(montant)),   # PawaPay: string, pas de décimales XAF
+        "amount":     str(int(montant)),
         "currency":   "XAF",
         "country":    "CMR",
         "payer": {
@@ -114,12 +114,24 @@ def initier_depot(telephone: str, montant: float,
         "callbackUrl": settings.PAWAPAY_CALLBACK_URL,
     }
 
+    # ── Log de diagnostic ──
+    print(f"[PAWAPAY] URL      : {BASE_URL}/deposits")
+    print(f"[PAWAPAY] Numero   : {numero}")
+    print(f"[PAWAPAY] Operateur: {operateur}")
+    print(f"[PAWAPAY] Montant  : {montant}")
+    print(f"[PAWAPAY] Token    : {settings.PAWAPAY_API_KEY[:30]}...")
+
     try:
         resp = requests.post(
             f"{BASE_URL}/deposits",
             json=payload, headers=_headers(), timeout=30
         )
-        data = resp.json()
+
+        # ── Log réponse brute ──
+        print(f"[PAWAPAY] Status HTTP : {resp.status_code}")
+        print(f"[PAWAPAY] Réponse     : {resp.text}")
+
+        data   = resp.json()
         statut = data.get("status", "")
 
         if statut == "ACCEPTED":
@@ -133,10 +145,10 @@ def initier_depot(telephone: str, montant: float,
         elif statut == "REJECTED":
             raison = data.get("failureReason", {})
             return {
-                "success": False,
+                "success":    False,
                 "deposit_id": deposit_id,
-                "message": raison.get("failureMessage", "Paiement rejeté"),
-                "code":    raison.get("failureCode", "REJECTED"),
+                "message":    raison.get("failureMessage", "Paiement rejeté"),
+                "code":       raison.get("failureCode", "REJECTED"),
             }
         else:
             return {"success": False, "message": f"Statut inattendu: {statut}", "data": data}
@@ -146,7 +158,6 @@ def initier_depot(telephone: str, montant: float,
                 "message": "Délai dépassé. Vérifiez le statut manuellement."}
     except Exception as e:
         return {"success": False, "message": str(e)}
-
 # ── Vérifier statut dépôt ──
 def verifier_statut_depot(deposit_id: str) -> dict:
     try:

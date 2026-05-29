@@ -184,6 +184,7 @@ def initier_depot(
 
 # ── Vérifier statut dépôt ─────────────────────────────────────────────────────
 def verifier_statut_depot(deposit_id: str) -> dict:
+    print(f"[PAWAPAY STATUS] Réponse brute: {resp.text}")
     try:
         resp = requests.get(
             f"{BASE_URL}/deposits/{deposit_id}",
@@ -201,6 +202,7 @@ def verifier_statut_depot(deposit_id: str) -> dict:
                 "failed":     True,
             }
 
+
         statut = data.get("status", "UNKNOWN")
         return {
             "deposit_id": deposit_id,
@@ -210,6 +212,7 @@ def verifier_statut_depot(deposit_id: str) -> dict:
             "processing": statut in ["ACCEPTED", "PROCESSING"],
             "data":       data,
         }
+    
     except Exception:
         return {
             "deposit_id": deposit_id,

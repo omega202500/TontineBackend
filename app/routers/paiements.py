@@ -153,6 +153,8 @@ def verifier_statut(
         "transaction":  tx,
     }
 
+
+
 # ════════════════════════════════════════════
 # CALLBACK PAWAPAY (webhook automatique)
 # ════════════════════════════════════════════
@@ -426,9 +428,10 @@ def _enregistrer_cotisation(db, tx: dict, deposit_id: str):
         retard=False,
         mode_paiement="MOBILE_MONEY",
         reference_transaction=deposit_id,
-        statut=StatutPaiement.VALIDE,
+       statut=StatutPaiement.EN_ATTENTE,
     ))
     db.commit()
+    _transactions[deposit_id] = { ... }
 
 def _enregistrer_epargne(db, tx: dict, deposit_id: str):
     """

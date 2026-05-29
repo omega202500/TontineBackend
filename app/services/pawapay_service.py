@@ -110,7 +110,6 @@ def initier_depot(telephone: str, montant: float,
             "provider":    operateur,
         }
     },
-    "statementDescription": f"Tontine-{type_transaction[:20]}",
 }
 
     # ── Log de diagnostic ──
